@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: job_agent_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./.env:/app/.env:ro
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/app.db
+      - CHROMA_PERSIST_DIR=./data/chroma
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend-dev:
+    image: node:20-alpine
+    container_name: job_agent_frontend_dev
+    working_dir: /app
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    profiles:
+      - dev
+    depends_on:
+      - backend
+
+volumes:
+  data:
+  uploads:

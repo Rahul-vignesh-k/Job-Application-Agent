@@ -1,0 +1,34 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+
+# Environment
+.env
+
+# Data / runtime artifacts
+data/
+uploads/
+*.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Playwright / screenshots
+data/screenshots/
+
+# Logs
+*.log

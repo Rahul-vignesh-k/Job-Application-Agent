@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 95%;
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 95%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 95%;
+    --primary: 226 71% 60%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 210 40% 85%;
+    --muted: 222 30% 12%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 226 71% 60%;
+    --accent-foreground: 222 47% 5%;
+    --destructive: 0 63% 55%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 222 30% 14%;
+    --input: 222 30% 14%;
+    --ring: 226 71% 60%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(222 30% 20%) transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(222 30% 20%);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(222 30% 28%);
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #6e8dfc 0%, #9ab4fe 50%, #c3d2ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow {
+    box-shadow: 0 0 20px rgba(78, 102, 248, 0.15), 0 0 40px rgba(78, 102, 248, 0.05);
+  }
+
+  .score-ring {
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-muted;
+  }
+
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+    animation: shimmer 1.5s infinite;
+    transform: translateX(-100%);
+  }
+}
