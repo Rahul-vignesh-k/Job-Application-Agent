@@ -91,6 +91,8 @@ class ApplicationInput(BaseModel):
 class ApplicationOutput(BaseModel):
     job_id: str
     success: bool
+    submission_status: str = "not_submitted"
+    simulated: bool = False
     confirmation_number: Optional[str] = None
     screenshot_path: Optional[str] = None
     error: Optional[str] = None

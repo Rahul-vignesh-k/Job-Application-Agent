@@ -12,7 +12,7 @@ from backend.agents.audit_agent import AuditAgent
 from backend.config import get_settings
 from backend.db import crud
 from backend.db.models import JobStatus, ApplicationResult
-from backend.automation.applicator import get_applicator, UnknownFieldError
+from backend.automation.applicator import get_applicator, not_submitted_result, UnknownFieldError
 
 settings = get_settings()
 _audit = AuditAgent()
@@ -66,6 +66,23 @@ class ApplicationAgent:
         if not job:
             raise ValueError(f"Job {inp.job_id} not found")
 
+        applicator = get_applicator()
+        if not getattr(applicator, "supports_submission", False):
+            result = not_submitted_result()
+            await _audit.log(db, AuditInput(
+                agent_name=self.name, event="application_not_submitted",
+                job_id=inp.job_id, level="warning",
+                message=result["error"], decision=AgentDecision.SKIP,
+                decision_reason="submission_not_implemented",
+                extra={"submission_status": "not_submitted", "simulated": True},
+            ))
+            return ApplicationOutput(
+                job_id=inp.job_id, success=False,
+                submission_status="not_submitted", simulated=True,
+                error=result["error"], decision=AgentDecision.SKIP,
+                decision_reason="submission_not_implemented",
+            )
+
         # Block if pending fields remain
         pending = await crud.list_pending_fields(db, inp.job_id)
         if pending:
@@ -104,7 +121,6 @@ class ApplicationAgent:
         await crud.update_job_status(db, inp.job_id, JobStatus.APPLYING)
 
         try:
-            applicator = get_applicator()
             result = await applicator.apply(job.apply_url, resume_path, form_data, inp.job_id)
 
             if result["success"]:
@@ -121,6 +137,7 @@ class ApplicationAgent:
                 output = ApplicationOutput(
                     job_id=inp.job_id,
                     success=True,
+                    submission_status="submitted",
                     confirmation_number=result["confirmation"],
                     screenshot_path=result["screenshot"],
                     decision=AgentDecision.PROCEED,

@@ -13,7 +13,7 @@ from backend.agent.state_machine import Event, transition
 from backend.mcp import CONNECTORS
 from backend.mcp.base import RawJob
 from backend.rag.matcher import match_resume_to_jd, tailor_resume, classify_job_type
-from backend.automation.applicator import get_applicator, UnknownFieldError
+from backend.automation.applicator import get_applicator, not_submitted_result, UnknownFieldError
 from backend.resumes.resume_processor import extract_text
 from backend.rag.chromadb_client import upsert_document, COLLECTION_JOB_ANSWERS
 
@@ -257,6 +257,16 @@ class JobAgent:
         if not job:
             raise ValueError(f"Job {job_id} not found")
 
+        applicator = get_applicator()
+        if not getattr(applicator, "supports_submission", False):
+            result = not_submitted_result()
+            await crud.log_event(
+                db, "application_not_submitted", result["error"],
+                job_id=job_id, level="warning",
+                metadata={"submission_status": "not_submitted", "simulated": True},
+            )
+            return result
+
         # Check for unresolved pending fields first
         pending = await crud.list_pending_fields(db, job_id)
         if pending:
@@ -293,7 +303,6 @@ class JobAgent:
         await crud.update_job_status(db, job_id, JobStatus.APPLYING)
 
         try:
-            applicator = get_applicator()
             result = await applicator.apply(job.apply_url, resume_path, form_data, job_id)
 
             if result["success"]:
